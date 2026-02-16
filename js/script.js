@@ -102,9 +102,23 @@ function preloadImages() {
 	});
 }
 
+let lastImageIndex = -1; // Lưu ảnh vừa hiện
+
+function getRandomImage() {
+    if (!loadedImages.length) return;
+    
+    let newIndex;
+    do {
+        newIndex = (Math.random() * loadedImages.length) | 0;
+    } while (newIndex === lastImageIndex && loadedImages.length > 1);
+    
+    lastImageIndex = newIndex;
+    return loadedImages[newIndex];
+}
+
 function addImageBurst(x, y, baseSize = 200) {
 	if (!loadedImages.length) return;
-	const img = loadedImages[(Math.random() * loadedImages.length) | 0];
+	const img = getRandomImage();
 	
 	// Responsive: giảm kích thước trên mobile
 	const isMobile = window.innerWidth <= 768;
