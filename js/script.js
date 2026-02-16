@@ -3537,3 +3537,17 @@ if (IS_HEADER) {
 		});
 	}, 0);
 }
+
+function unlockAndStart() {
+    togglePause(false); // chạy pháo hoa
+
+    if (typeof soundManager !== "undefined") {
+        soundManager.resumeAll();
+    }
+
+    window.removeEventListener("click", unlockAndStart);
+    window.removeEventListener("touchstart", unlockAndStart);
+}
+
+window.addEventListener("click", unlockAndStart);
+window.addEventListener("touchstart", unlockAndStart);
