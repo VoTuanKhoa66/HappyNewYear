@@ -1,5 +1,3 @@
-
-
 "use strict";
 
 
@@ -444,6 +442,8 @@ const appNodes = {
 	stageContainer: ".stage-container",
 	canvasContainer: ".canvas-container",
 	wishesLayer: "#wishes-layer",
+	countdownOverlay: "#countdown-overlay",
+	countdownNumber: "#countdown-number",
 	controls: ".controls",
 	menu: ".menu",
 	menuInnerWrap: ".menu__inner-wrap",
@@ -560,14 +560,16 @@ store.subscribe(handleStateChange);
 
 // Mảng câu chúc màu hồng
 const WISH_MESSAGES = [
+	"Chúc bạn vạn sự như ý 🌟.",
     "Chúc bạn gặp nhiều may mắn và niềm vui 🎉",
     "Chúc đồng chí 2026 sức khỏe dồi dào 💪.",
     "Chúc bạn ngủ ngon trên mọi địa hình 😴.",
     "Chúc bạn xì bài toàn đỏ 🃏.",
 	"Chúc mọi điều ước của bạn đều trở thành hiện thực 🌈.",
-    "Năm mới vạn sự như ý 🌟.",
+    "Năm mới bình an, hạnh phúc bên gia đình 🧧.",
     "Chúc bạn luôn xinh đẹp 💅.",
-	"Chúc công việc thuận lợi, thăng tiến không ngừng 🚀"
+	"Chúc công việc thuận lợi, thăng tiến không ngừng 🚀",
+	"Chúc bạn một năm mới rực rỡ và thành công ✨."
 ];
 
 // Sinh 1 câu chúc bay lên
@@ -599,64 +601,64 @@ function spawnWishMessage() {
 	wrapper.style.animationDuration = duration + "s";
 
 	// Cho phép thao tác tay trên inner - xoay/thu phóng toàn bộ không gian (3D camera)
-	inner.addEventListener("pointerdown", (e) => {
-		if (isDraggingWish) return; // Tránh nhiều drag cùng lúc
-		isDraggingWish = true;
-		dragStartX = e.clientX;
-		dragStartY = e.clientY;
-		dragStartRotationX = globalWishRotationX;
-		dragStartRotationY = globalWishRotationY;
-		dragStartScale = globalWishScale;
+	// inner.addEventListener("pointerdown", (e) => {
+	// 	if (isDraggingWish) return; // Tránh nhiều drag cùng lúc
+	// 	isDraggingWish = true;
+	// 	dragStartX = e.clientX;
+	// 	dragStartY = e.clientY;
+	// 	dragStartRotationX = globalWishRotationX;
+	// 	dragStartRotationY = globalWishRotationY;
+	// 	dragStartScale = globalWishScale;
 		
-		// Reset vận tốc và tracking
-		velocityX = 0;
-		velocityY = 0;
-		lastMoveX = e.clientX;
-		lastMoveY = e.clientY;
-		lastMoveTime = Date.now();
+	// 	// Reset vận tốc và tracking
+	// 	velocityX = 0;
+	// 	velocityY = 0;
+	// 	lastMoveX = e.clientX;
+	// 	lastMoveY = e.clientY;
+	// 	lastMoveTime = Date.now();
 		
-		// Tắt transition khi đang drag để giảm lag
-		if (appNodes.wishesLayer) {
-			appNodes.wishesLayer.classList.add('dragging');
-		}
+	// 	// Tắt transition khi đang drag để giảm lag
+	// 	if (appNodes.wishesLayer) {
+	// 		appNodes.wishesLayer.classList.add('dragging');
+	// 	}
 		
-		inner.setPointerCapture(e.pointerId);
-		e.stopPropagation();
-		e.preventDefault();
-	});
+	// 	inner.setPointerCapture(e.pointerId);
+	// 	e.stopPropagation();
+	// 	e.preventDefault();
+	// });
 
-	inner.addEventListener("pointermove", (e) => {
-		if (!isDraggingWish) return;
+	// inner.addEventListener("pointermove", (e) => {
+	// 	if (!isDraggingWish) return;
 		
-		const currentTime = Date.now();
-		const dx = e.clientX - dragStartX;
-		const dy = e.clientY - dragStartY;
+	// 	const currentTime = Date.now();
+	// 	const dx = e.clientX - dragStartX;
+	// 	const dy = e.clientY - dragStartY;
 		
-		// Tính vận tốc dựa trên sự thay đổi vị trí giữa các frame (giống OrbitControls)
-		if (lastMoveTime > 0) {
-			const deltaTime = Math.max(1, currentTime - lastMoveTime); // Tránh chia cho 0
-			const deltaX = e.clientX - lastMoveX;
-			const deltaY = e.clientY - lastMoveY;
+	// 	// Tính vận tốc dựa trên sự thay đổi vị trí giữa các frame (giống OrbitControls)
+	// 	if (lastMoveTime > 0) {
+	// 		const deltaTime = Math.max(1, currentTime - lastMoveTime); // Tránh chia cho 0
+	// 		const deltaX = e.clientX - lastMoveX;
+	// 		const deltaY = e.clientY - lastMoveY;
 			
-			// Vận tốc tính bằng độ thay đổi góc mỗi frame
-			velocityX = (-deltaY * 0.3) * (16 / deltaTime); // Normalize về 60fps
-			velocityY = (deltaX * 0.3) * (16 / deltaTime);
-		}
+	// 		// Vận tốc tính bằng độ thay đổi góc mỗi frame
+	// 		velocityX = (-deltaY * 0.3) * (16 / deltaTime); // Normalize về 60fps
+	// 		velocityY = (deltaX * 0.3) * (16 / deltaTime);
+	// 	}
 		
-		lastMoveX = e.clientX;
-		lastMoveY = e.clientY;
-		lastMoveTime = currentTime;
+	// 	lastMoveX = e.clientX;
+	// 	lastMoveY = e.clientY;
+	// 	lastMoveTime = currentTime;
 		
-		// Xoay theo trục Y (trái phải) khi kéo ngang - giống OrbitControls
-		globalWishRotationY = dragStartRotationY + dx * 0.3;
-		// Xoay theo trục X (lên xuống) khi kéo dọc - giống OrbitControls
-		globalWishRotationX = Math.max(-60, Math.min(60, dragStartRotationX - dy * 0.3));
+	// 	// Xoay theo trục Y (trái phải) khi kéo ngang - giống OrbitControls
+	// 	globalWishRotationY = dragStartRotationY + dx * 0.3;
+	// 	// Xoay theo trục X (lên xuống) khi kéo dọc - giống OrbitControls
+	// 	globalWishRotationX = Math.max(-60, Math.min(60, dragStartRotationX - dy * 0.3));
 		
-		// Thu phóng: giảm sensitivity để tránh conflict với xoay
-		globalWishScale = Math.max(0.5, Math.min(2, dragStartScale + dy * -0.002));
+	// 	// Thu phóng: giảm sensitivity để tránh conflict với xoay
+	// 	globalWishScale = Math.max(0.5, Math.min(2, dragStartScale + dy * -0.002));
 		
-		updateGlobalWishTransform();
-	});
+	// 	updateGlobalWishTransform();
+	// });
 
 	function endDrag(e) {
 		if (!isDraggingWish) return;
@@ -682,8 +684,8 @@ function spawnWishMessage() {
 		}
 	}
 
-	inner.addEventListener("pointerup", endDrag);
-	inner.addEventListener("pointercancel", endDrag);
+	// inner.addEventListener("pointerup", endDrag);
+	// inner.addEventListener("pointercancel", endDrag);
 
 	layer.appendChild(wrapper);
 
@@ -727,92 +729,93 @@ function spawnWishImage() {
 	const duration = 6 + Math.random() * 4;
 	wrapper.style.animationDuration = duration + "s";
 
-	// Cho phép thao tác tay trên ảnh - xoay/thu phóng toàn bộ không gian (3D camera)
-	imgElement.addEventListener("pointerdown", (e) => {
-		if (isDraggingWish) return; // Tránh nhiều drag cùng lúc
-		isDraggingWish = true;
-		dragStartX = e.clientX;
-		dragStartY = e.clientY;
-		dragStartRotationX = globalWishRotationX;
-		dragStartRotationY = globalWishRotationY;
-		dragStartScale = globalWishScale;
-		
-		// Reset vận tốc và tracking
-		velocityX = 0;
-		velocityY = 0;
-		lastMoveX = e.clientX;
-		lastMoveY = e.clientY;
-		lastMoveTime = Date.now();
-		
-		// Tắt transition khi đang drag để giảm lag
-		if (appNodes.wishesLayer) {
-			appNodes.wishesLayer.classList.add('dragging');
-		}
-		
-		imgElement.setPointerCapture(e.pointerId);
-		e.stopPropagation();
-		e.preventDefault();
-	});
+	// ĐÃ TẮT: Không cho phép thao tác tay trên ảnh - xoay/thu phóng
+	// imgElement.addEventListener("pointerdown", (e) => {
+	// 	if (isDraggingWish) return; // Tránh nhiều drag cùng lúc
+	// 	isDraggingWish = true;
+	// 	dragStartX = e.clientX;
+	// 	dragStartY = e.clientY;
+	// 	dragStartRotationX = globalWishRotationX;
+	// 	dragStartRotationY = globalWishRotationY;
+	// 	dragStartScale = globalWishScale;
+	// 	
+	// 	// Reset vận tốc và tracking
+	// 	velocityX = 0;
+	// 	velocityY = 0;
+	// 	lastMoveX = e.clientX;
+	// 	lastMoveY = e.clientY;
+	// 	lastMoveTime = Date.now();
+	// 	
+	// 	// Tắt transition khi đang drag để giảm lag
+	// 	if (appNodes.wishesLayer) {
+	// 		appNodes.wishesLayer.classList.add('dragging');
+	// 	}
+	// 	
+	// 	imgElement.setPointerCapture(e.pointerId);
+	// 	e.stopPropagation();
+	// 	e.preventDefault();
+	// });
 
-	imgElement.addEventListener("pointermove", (e) => {
-		if (!isDraggingWish) return;
-		
-		const currentTime = Date.now();
-		const dx = e.clientX - dragStartX;
-		const dy = e.clientY - dragStartY;
-		
-		// Tính vận tốc dựa trên sự thay đổi vị trí giữa các frame (giống OrbitControls)
-		if (lastMoveTime > 0) {
-			const deltaTime = Math.max(1, currentTime - lastMoveTime); // Tránh chia cho 0
-			const deltaX = e.clientX - lastMoveX;
-			const deltaY = e.clientY - lastMoveY;
-			
-			// Vận tốc tính bằng độ thay đổi góc mỗi frame
-			velocityX = (-deltaY * 0.3) * (16 / deltaTime); // Normalize về 60fps
-			velocityY = (deltaX * 0.3) * (16 / deltaTime);
-		}
-		
-		lastMoveX = e.clientX;
-		lastMoveY = e.clientY;
-		lastMoveTime = currentTime;
-		
-		// Xoay theo trục Y (trái phải) khi kéo ngang - giống OrbitControls
-		globalWishRotationY = dragStartRotationY + dx * 0.3;
-		// Xoay theo trục X (lên xuống) khi kéo dọc - giống OrbitControls
-		globalWishRotationX = Math.max(-60, Math.min(60, dragStartRotationX - dy * 0.3));
-		
-		// Thu phóng: giảm sensitivity để tránh conflict với xoay
-		globalWishScale = Math.max(0.5, Math.min(2, dragStartScale + dy * -0.002));
-		
-		updateGlobalWishTransform();
-	});
+	// imgElement.addEventListener("pointermove", (e) => {
+	// 	if (!isDraggingWish) return;
+	// 	
+	// 	const currentTime = Date.now();
+	// 	const dx = e.clientX - dragStartX;
+	// 	const dy = e.clientY - dragStartY;
+	// 	
+	// 	// Tính vận tốc dựa trên sự thay đổi vị trí giữa các frame (giống OrbitControls)
+	// 	if (lastMoveTime > 0) {
+	// 		const deltaTime = Math.max(1, currentTime - lastMoveTime); // Tránh chia cho 0
+	// 		const deltaX = e.clientX - lastMoveX;
+	// 		const deltaY = e.clientY - lastMoveY;
+	// 		
+	// 		// Vận tốc tính bằng độ thay đổi góc mỗi frame
+	// 		velocityX = (-deltaY * 0.3) * (16 / deltaTime); // Normalize về 60fps
+	// 		velocityY = (deltaX * 0.3) * (16 / deltaTime);
+	// 	}
+	// 	
+	// 	lastMoveX = e.clientX;
+	// 	lastMoveY = e.clientY;
+	// 	lastMoveTime = currentTime;
+	// 	
+	// 	// Xoay theo trục Y (trái phải) khi kéo ngang - giống OrbitControls
+	// 	globalWishRotationY = dragStartRotationY + dx * 0.3;
+	// 	// Xoay theo trục X (lên xuống) khi kéo dọc - giống OrbitControls
+	// 	globalWishRotationX = Math.max(-60, Math.min(60, dragStartRotationX - dy * 0.3));
+	// 	
+	// 	// Thu phóng: giảm sensitivity để tránh conflict với xoay
+	// 	globalWishScale = Math.max(0.5, Math.min(2, dragStartScale + dy * -0.002));
+	// 	
+	// 	updateGlobalWishTransform();
+	// });
 
-	function endDrag(e) {
-		if (!isDraggingWish) return;
-		isDraggingWish = false;
-		
-		// Bật lại transition khi kết thúc drag
-		if (appNodes.wishesLayer) {
-			appNodes.wishesLayer.classList.remove('dragging');
-		}
-		
-		// Bắt đầu damping animation nếu có vận tốc (giống OrbitControls)
-		if (Math.abs(velocityX) > 0.1 || Math.abs(velocityY) > 0.1) {
-			dampingAnimation();
-		} else {
-			velocityX = 0;
-			velocityY = 0;
-		}
-		
-		if (e.pointerId != null) {
-			try {
-				imgElement.releasePointerCapture(e.pointerId);
-			} catch (err) {}
-		}
-	}
+	// ĐÃ TẮT: Event listeners cho endDrag
+	// function endDrag(e) {
+	// 	if (!isDraggingWish) return;
+	// 	isDraggingWish = false;
+	// 	
+	// 	// Bật lại transition khi kết thúc drag
+	// 	if (appNodes.wishesLayer) {
+	// 		appNodes.wishesLayer.classList.remove('dragging');
+	// 	}
+	// 	
+	// 	// Bắt đầu damping animation nếu có vận tốc (giống OrbitControls)
+	// 	if (Math.abs(velocityX) > 0.1 || Math.abs(velocityY) > 0.1) {
+	// 		dampingAnimation();
+	// 	} else {
+	// 		velocityX = 0;
+	// 		velocityY = 0;
+	// 	}
+	// 	
+	// 	if (e.pointerId != null) {
+	// 		try {
+	// 			imgElement.releasePointerCapture(e.pointerId);
+	// 		} catch (err) {}
+	// 	}
+	// }
 
-	imgElement.addEventListener("pointerup", endDrag);
-	imgElement.addEventListener("pointercancel", endDrag);
+	// imgElement.addEventListener("pointerup", endDrag);
+	// imgElement.addEventListener("pointercancel", endDrag);
 
 	layer.appendChild(wrapper);
 
@@ -1022,9 +1025,9 @@ appNodes.soundBtn.addEventListener("click", () => {
 });
 
 // Nút dừng câu chúc: dừng việc tạo câu chúc mới (các câu chúc đang bay sẽ tiếp tục hoàn thành)
-appNodes.stopWishesBtn.addEventListener("click", () => {
-	stopWishesLoop();
-});
+// appNodes.stopWishesBtn.addEventListener("click", () => {
+// 	stopWishesLoop();
+// });
 
 Object.keys(nodeKeyToHelpKey).forEach((nodeKey) => {
 	const helpKey = nodeKeyToHelpKey[nodeKey];
@@ -1336,6 +1339,131 @@ const shellTypes = {
 
 const shellNames = Object.keys(shellTypes);
 
+// Hàm đếm ngược 3 giây trước khi bắt đầu
+function startCountdown(callback) {
+	// Tạo overlay đếm ngược nếu chưa có
+	let overlay = document.querySelector('#countdown-overlay');
+	if (!overlay) {
+		overlay = document.createElement('div');
+		overlay.id = 'countdown-overlay';
+		overlay.style.cssText = `
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0, 0, 0, 0.9);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			z-index: 10000;
+			font-family: Arial, sans-serif;
+		`;
+		
+		const countdownNumber = document.createElement('div');
+		countdownNumber.id = 'countdown-number';
+		countdownNumber.style.cssText = `
+			font-size: 150px;
+			font-weight: bold;
+			color: #ff99d8;
+			text-shadow: 0 0 30px #ff99d8,
+						 0 0 60px #e60aff;
+			animation: countdownPulse 1s ease-in-out;
+		`;
+		
+		overlay.appendChild(countdownNumber);
+		document.body.appendChild(overlay);
+		
+		// Thêm CSS animation cho hiệu ứng pulse
+		const style = document.createElement('style');
+		style.textContent = `
+			@keyframes countdownPulse {
+				0% {
+					transform: scale(0.5);
+					opacity: 0;
+				}
+				50% {
+					transform: scale(1.2);
+					opacity: 1;
+				}
+				100% {
+					transform: scale(1);
+					opacity: 1;
+				}
+			}
+			@keyframes countdownFadeOut {
+				0% {
+					opacity: 1;
+					transform: scale(1);
+				}
+				100% {
+					opacity: 0;
+					transform: scale(1.5);
+				}
+			}
+			#countdown-number.happy-new-year {
+				font-size: 90px !important;
+				text-align: center;
+			}
+		`;
+		document.head.appendChild(style);
+	}
+	
+	const countdownNumber = document.querySelector('#countdown-number');
+	let count = 3;
+	
+	// Hàm cập nhật số đếm ngược
+	function updateCountdown() {
+		if (count > 0) {
+			countdownNumber.textContent = count;
+			countdownNumber.style.animation = 'none';
+			// Trigger reflow để restart animation
+			void countdownNumber.offsetWidth;
+			countdownNumber.style.animation = 'countdownPulse 1s ease-in-out';
+			
+			// Phát âm thanh đếm ngược (nếu có)
+			if (canPlaySoundSelector()) {
+				try {
+					soundManager.playSound('countdown', 1);
+				} catch (e) {
+					// Nếu không có file countdown.mp3, dùng âm thanh khác
+					console.log('Countdown sound not available');
+				}
+			}
+			
+			count--;
+			setTimeout(updateCountdown, 1000);
+		} else {
+			// Kết thúc đếm ngược
+			countdownNumber.textContent = 'Happy New Year!';
+			countdownNumber.classList.add('happy-new-year');
+			countdownNumber.style.animation = 'countdownPulse 2s ease-in-out';
+			
+			// QUAN TRỌNG: Phát nhạc nền ngay tại đây
+			console.log('🎵 Attempting to play background music...');
+			setTimeout(() => {
+				soundManager.playBackgroundMusic();
+			}, 200);
+			
+			setTimeout(() => {
+				overlay.style.opacity = '0';
+				overlay.style.transition = 'opacity 0.5s';
+				
+				setTimeout(() => {
+					if (overlay.parentNode) {
+						overlay.parentNode.removeChild(overlay);
+					}
+					// Gọi callback để bắt đầu app
+					if (callback) callback();
+				}, 500);
+			}, 1500); // Hiển thị 1.5 giây
+		}
+	}
+	
+	// Bắt đầu đếm ngược
+	updateCountdown();
+}
+
 function init() {
 	// Remove loading state
 	appNodes.stageContainer.classList.remove("remove");
@@ -1344,14 +1472,6 @@ function init() {
 	if (appNodes.wishesLayer) {
 		updateGlobalWishTransform();
 	}
-
-	// Sau 10s kể từ khi bắt đầu show mới bật random ảnh trong pháo
-	// NHƯNG chỉ khi không có câu chúc đang bay
-	setTimeout(() => {
-		if (!hasActiveWishes()) {
-			imageBurstEnabled = true;
-		}
-	}, 20000);
 
 	// Populate dropdowns
 	function setOptionsForSelect(node, options) {
@@ -1385,14 +1505,54 @@ function init() {
 		[0.5, 0.62, 0.75, 0.9, 1.0, 1.5, 2.0].map((value) => ({ value: value.toFixed(2), label: `${value * 100}%` }))
 	);
 
-	// Begin simulation
-	togglePause(false);
-
 	// initial render
 	renderApp(store.state);
 
 	// Apply initial config
 	configDidUpdate();
+
+	// Bắt đầu đếm ngược 3 giây trước khi chạy pháo hoa
+	startCountdown(startFireworks);
+}
+
+// Hàm bắt đầu pháo hoa sau khi đếm ngược xong
+function startFireworks() {
+	console.log('🎆 Starting fireworks...');
+	
+	// Phát nhạc nền với nhiều lần thử
+	console.log('🎵 Playing background music (attempt 1)...');
+	setTimeout(() => {
+		soundManager.playBackgroundMusic();
+	}, 100);
+	
+	// Backup: Thử lại sau 1 giây
+	setTimeout(() => {
+		if (!soundManager._backgroundMusicSource) {
+			console.log('🎵 Retrying background music (attempt 2)...');
+			soundManager.playBackgroundMusic();
+		} else {
+			console.log('✅ Background music already playing');
+		}
+	}, 1000);
+	
+	// Backup: Thử lại sau 2 giây
+	setTimeout(() => {
+		if (!soundManager._backgroundMusicSource) {
+			console.log('🎵 Retrying background music (attempt 3)...');
+			soundManager.playBackgroundMusic();
+		}
+	}, 2000);
+	
+	// Sau 10s kể từ khi bắt đầu show mới bật random ảnh trong pháo
+	// NHƯNG chỉ khi không có câu chúc đang bay
+	setTimeout(() => {
+		if (!hasActiveWishes()) {
+			imageBurstEnabled = true;
+		}
+	}, 20000);
+
+	// Begin simulation
+	togglePause(false);
 
 	// Nếu pháo hoa đã chạy tự động từ đầu, bắt đầu lời chúc luôn
 	if (store.state.config.autoLaunch && !store.state.paused) {
@@ -3083,32 +3243,45 @@ const soundManager = {
 	baseURL: "./audio/",
 	ctx: new (window.AudioContext || window.webkitAudioContext)(),
 	sources: {
-		lift: {
+		countdown: {
 			volume: 1,
+			playbackRateMin: 1,
+			playbackRateMax: 1,
+			fileNames: ["countdown.mp3"], // File âm thanh đếm ngược
+		},
+		backgroundMusic: {
+			volume: 0.3, // Volume nhạc nền (30%)
+			playbackRateMin: 1,
+			playbackRateMax: 1,
+			fileNames: ["background-music.mp3"], // File nhạc nền
+			loop: true, // Đánh dấu là nhạc nền cần loop
+		},
+		lift: {
+			volume: 0.3, // Giảm từ 1 xuống 0.3 (70% nhẹ hơn)
 			playbackRateMin: 0.85,
 			playbackRateMax: 0.95,
 			fileNames: ["lift1.mp3", "lift2.mp3", "lift3.mp3"],
 		},
 		burst: {
-			volume: 1,
+			volume: 0.3, // Giảm từ 1 xuống 0.3 (70% nhẹ hơn)
 			playbackRateMin: 0.8,
 			playbackRateMax: 0.9,
 			fileNames: ["burst1.mp3", "burst2.mp3"],
 		},
 		burstSmall: {
-			volume: 0.25,
+			volume: 0.15, // Giảm từ 0.25 xuống 0.15
 			playbackRateMin: 0.8,
 			playbackRateMax: 1,
 			fileNames: ["burst-sm-1.mp3", "burst-sm-2.mp3"],
 		},
 		crackle: {
-			volume: 0.2,
+			volume: 0.1, // Giảm từ 0.2 xuống 0.1
 			playbackRateMin: 1,
 			playbackRateMax: 1,
 			fileNames: ["crackle1.mp3"],
 		},
 		crackleSmall: {
-			volume: 0.3,
+			volume: 0.15, // Giảm từ 0.3 xuống 0.15
 			playbackRateMin: 1,
 			playbackRateMax: 1,
 			fileNames: ["crackle-sm-1.mp3"],
@@ -3233,6 +3406,109 @@ const soundManager = {
 		bufferSource.connect(gainNode);
 		gainNode.connect(this.ctx.destination);
 		bufferSource.start(0);
+	},
+
+	// Biến lưu trữ background music source
+	_backgroundMusicSource: null,
+	_backgroundMusicGainNode: null,
+
+	/**
+	 * Phát nhạc nền (loop vô hạn)
+	 */
+	playBackgroundMusic() {
+		// Nếu đang phát rồi thì không phát lại
+		if (this._backgroundMusicSource) {
+			console.log("Background music already playing");
+			return;
+		}
+
+		// Kiểm tra sound có bật không
+		if (!canPlaySoundSelector()) {
+			console.log("Sound is disabled");
+			return;
+		}
+
+		const source = this.sources.backgroundMusic;
+		if (!source) {
+			console.log("Background music source not found in config");
+			return;
+		}
+
+		if (!source.buffers || !source.buffers.length) {
+			console.log("Background music file not loaded. Check if /audio/background-music.mp3 exists");
+			return;
+		}
+
+		try {
+			// Resume audio context nếu bị suspend
+			if (this.ctx.state === 'suspended') {
+				console.log("Resuming audio context...");
+				this.ctx.resume().then(() => {
+					console.log("Audio context resumed");
+					this._startBackgroundMusic();
+				});
+			} else {
+				this._startBackgroundMusic();
+			}
+		} catch (e) {
+			console.error("Error playing background music:", e);
+		}
+	},
+
+	/**
+	 * Hàm phụ để thực sự start nhạc nền
+	 */
+	_startBackgroundMusic() {
+		const source = this.sources.backgroundMusic;
+		
+		try {
+			const gainNode = this.ctx.createGain();
+			gainNode.gain.value = source.volume;
+
+			const buffer = source.buffers[0];
+			const bufferSource = this.ctx.createBufferSource();
+			bufferSource.playbackRate.value = 1;
+			bufferSource.buffer = buffer;
+			bufferSource.loop = true; // Loop vô hạn
+			bufferSource.connect(gainNode);
+			gainNode.connect(this.ctx.destination);
+			bufferSource.start(0);
+
+			// Lưu lại để có thể stop sau này
+			this._backgroundMusicSource = bufferSource;
+			this._backgroundMusicGainNode = gainNode;
+
+			console.log("✅ Background music started successfully!");
+			console.log(`   Volume: ${source.volume * 100}%`);
+			console.log(`   Loop: ${bufferSource.loop}`);
+		} catch (e) {
+			console.error("❌ Error starting background music:", e);
+		}
+	},
+
+	/**
+	 * Dừng nhạc nền
+	 */
+	stopBackgroundMusic() {
+		if (this._backgroundMusicSource) {
+			try {
+				this._backgroundMusicSource.stop();
+			} catch (e) {
+				console.log("Error stopping background music:", e);
+			}
+			this._backgroundMusicSource = null;
+			this._backgroundMusicGainNode = null;
+			console.log("Background music stopped");
+		}
+	},
+
+	/**
+	 * Điều chỉnh volume nhạc nền (0 to 1)
+	 */
+	setBackgroundMusicVolume(volume) {
+		if (this._backgroundMusicGainNode) {
+			this._backgroundMusicGainNode.gain.value = MyMath.clamp(volume, 0, 1);
+		}
 	},
 };
 
