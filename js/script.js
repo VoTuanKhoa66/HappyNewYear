@@ -1511,8 +1511,7 @@ function init() {
 	// Apply initial config
 	configDidUpdate();
 
-	// Bắt đầu đếm ngược 3 giây trước khi chạy pháo hoa
-	startCountdown(startFireworks);
+	createStartScreen();
 }
 
 // Hàm bắt đầu pháo hoa sau khi đếm ngược xong
@@ -3538,16 +3537,50 @@ if (IS_HEADER) {
 	}, 0);
 }
 
-function unlockAndStart() {
-    togglePause(false); // chạy pháo hoa
+function createStartScreen() {
+    const overlay = document.createElement("div");
+    overlay.id = "start-screen";
 
-    if (typeof soundManager !== "undefined") {
-        soundManager.resumeAll();
+    overlay.innerHTML = `
+        <div class="start-content">
+            ✨ Nhấn vào màn hình để bắt đầu ✨
+        </div>
+    `;
+
+	overlay.className = "tet-overlay";
+
+	const style = document.createElement('style');
+		style.textContent = `
+			.start-content {
+				animation: pulse 1.5s infinite;
+			}
+
+			@keyframes pulse {
+				0% { transform: scale(1); opacity: .6; }
+				50% { transform: scale(1.1); opacity: 1; }
+				100% { transform: scale(1); opacity: .6; }
+			}
+		`;
+		document.head.appendChild(style);
+	
+
+    document.body.appendChild(overlay);
+
+    function startExperience() {
+        // unlock audio
+        if (typeof soundManager !== "undefined") {
+            soundManager.resumeAll();
+        }
+
+        overlay.remove();
+
+        // 👉 bắt đầu đếm ngược
+        startCountdown(startFireworks);
+
+        window.removeEventListener("click", startExperience);
+        window.removeEventListener("touchstart", startExperience);
     }
 
-    window.removeEventListener("click", unlockAndStart);
-    window.removeEventListener("touchstart", unlockAndStart);
+    overlay.addEventListener("click", startExperience);
+    overlay.addEventListener("touchstart", startExperience);
 }
-
-window.addEventListener("click", unlockAndStart);
-window.addEventListener("touchstart", unlockAndStart);
